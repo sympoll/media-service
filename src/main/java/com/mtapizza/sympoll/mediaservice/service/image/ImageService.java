@@ -2,6 +2,7 @@ package com.mtapizza.sympoll.mediaservice.service.image;
 
 import com.mtapizza.sympoll.mediaservice.dto.response.ImageRetrieveResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.ImageUploadResponse;
+import com.mtapizza.sympoll.mediaservice.exception.ImageNotFoundException;
 import com.mtapizza.sympoll.mediaservice.model.image.Image;
 import com.mtapizza.sympoll.mediaservice.repository.image.ImageRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,11 @@ public class ImageService {
         return new ImageUploadResponse("Successfully uploaded image", image.getId(), image.getName());
     }
 
-    public ImageRetrieveResponse getImage(Long id) throws RuntimeException {
+    public ImageRetrieveResponse getImage(Long id) throws ImageNotFoundException {
         Image retrievedImg = imageRepository
                 .findById(id)
                 .orElseThrow(
-                        () -> new RuntimeException("Image not found")
+                        () -> new ImageNotFoundException(id)
                 );
 
         return new ImageRetrieveResponse(

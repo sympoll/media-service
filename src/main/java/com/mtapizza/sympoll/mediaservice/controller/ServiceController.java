@@ -2,7 +2,6 @@ package com.mtapizza.sympoll.mediaservice.controller;
 
 import com.mtapizza.sympoll.mediaservice.dto.response.ImageRetrieveResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.ImageUploadResponse;
-import com.mtapizza.sympoll.mediaservice.model.image.Image;
 import com.mtapizza.sympoll.mediaservice.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
