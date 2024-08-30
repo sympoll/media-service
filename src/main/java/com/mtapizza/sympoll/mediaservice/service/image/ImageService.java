@@ -1,8 +1,9 @@
 package com.mtapizza.sympoll.mediaservice.service.image;
 
-import com.mtapizza.sympoll.mediaservice.dto.response.ImageRetrieveResponse;
-import com.mtapizza.sympoll.mediaservice.dto.response.ImageUploadResponse;
-import com.mtapizza.sympoll.mediaservice.exception.ImageNotFoundException;
+import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageRetrieveResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
+import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
+import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
 import com.mtapizza.sympoll.mediaservice.model.image.Image;
 import com.mtapizza.sympoll.mediaservice.repository.image.ImageRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +17,17 @@ import java.io.IOException;
 public class ImageService {
     private final ImageRepository imageRepository;
 
-    public ImageUploadResponse saveImage(MultipartFile file) throws IOException {
-        Image image = new Image();
-        image.setName(file.getOriginalFilename());
-        image.setData(file.getBytes());
-        imageRepository.save(image);
-        return new ImageUploadResponse("Successfully uploaded image", image.getId(), image.getName());
+    public ImageUploadResponse saveImage(MultipartFile file) throws ImageIOException {
+        try {
+            Image image = new Image();
+            image.setName(file.getOriginalFilename());
+            image.setData(file.getBytes());
+
+            imageRepository.save(image);
+            return new ImageUploadResponse("Successfully uploaded image", image.getId(), image.getName());
+        } catch (IOException ex) {
+            throw new ImageIOException("Failed to upload image: " + ex);
+        }
     }
 
     public ImageRetrieveResponse getImage(Long id) throws ImageNotFoundException {

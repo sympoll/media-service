@@ -1,4 +1,4 @@
-package com.mtapizza.sympoll.mediaservice.exception;
+package com.mtapizza.sympoll.mediaservice.exception.image.not.found;
 
 public class ImageNotFoundException extends RuntimeException {
     public ImageNotFoundException(Long id) {

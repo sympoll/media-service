@@ -1,7 +1,7 @@
 package com.mtapizza.sympoll.mediaservice.controller;
 
-import com.mtapizza.sympoll.mediaservice.dto.response.ImageRetrieveResponse;
-import com.mtapizza.sympoll.mediaservice.dto.response.ImageUploadResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageRetrieveResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
 import com.mtapizza.sympoll.mediaservice.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,32 +20,18 @@ public class ServiceController {
     private final ImageService imageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            log.info("Received request to upload image");
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(imageService.saveImage(file));
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ImageUploadResponse("Failed to upload image", null , null));
-        }
+    public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
+        log.info("Received request to upload image");
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(imageService.saveImage(file));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ImageRetrieveResponse> getImage(@PathVariable Long id) {
-        try {
-            log.info("Received request to retrieve image with id: {}", id);
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(imageService.getImage(id));
-        } catch (RuntimeException e) {
-            log.error(e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(new ImageRetrieveResponse("Image not found", null , null));
-        }
+        log.info("Received request to retrieve image with id: {}", id);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(imageService.getImage(id));
     }
 }
