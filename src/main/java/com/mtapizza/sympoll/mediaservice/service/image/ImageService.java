@@ -6,6 +6,7 @@ import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOExc
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
 import com.mtapizza.sympoll.mediaservice.model.image.Image;
 import com.mtapizza.sympoll.mediaservice.repository.image.ImageRepository;
+import com.mtapizza.sympoll.mediaservice.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,12 +20,14 @@ public class ImageService {
 
     public ImageUploadResponse saveImage(MultipartFile file) throws ImageIOException {
         try {
-            Image image = new Image();
-            image.setName(file.getOriginalFilename());
-            image.setData(file.getBytes());
+            Image imageToSave = Image.builder()
+                    .name(file.getOriginalFilename())
+                    .type(file.getContentType())
+                    .data(ImageUtils.compressImage(file.getBytes()))
+                    .build();
 
-            imageRepository.save(image);
-            return new ImageUploadResponse("Successfully uploaded image", image.getId(), image.getName());
+            imageRepository.save(imageToSave);
+            return new ImageUploadResponse("Successfully uploaded image", imageToSave.getId(), imageToSave.getName());
         } catch (IOException ex) {
             throw new ImageIOException("Failed to upload image: " + ex);
         }
