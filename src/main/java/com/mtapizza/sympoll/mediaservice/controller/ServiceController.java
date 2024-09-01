@@ -29,7 +29,7 @@ public class ServiceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ImageRetrieveResponse> getImage(@PathVariable Long id) throws ImageNotFoundException, ImageIOException, ImageDataFormatException {
+    public ResponseEntity<byte[]> getImage(@PathVariable Long id) throws ImageNotFoundException, ImageIOException, ImageDataFormatException {
         log.info("Received request to retrieve image with id: {}", id);
         return ResponseEntity
                 .status(HttpStatus.OK)
