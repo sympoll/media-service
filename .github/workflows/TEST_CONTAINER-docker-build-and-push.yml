@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}/sympoll-poll-service-test
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/sympoll-media-service-test
 
 jobs:
   build-and-push:
