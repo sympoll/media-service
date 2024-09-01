@@ -2,6 +2,7 @@ package com.mtapizza.sympoll.mediaservice.service.image;
 
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageRetrieveResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
+import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
 import com.mtapizza.sympoll.mediaservice.model.image.Image;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.zip.DataFormatException;
 
 @Service
 @RequiredArgsConstructor
@@ -33,17 +35,22 @@ public class ImageService {
         }
     }
 
-    public ImageRetrieveResponse getImage(Long id) throws ImageNotFoundException {
+    public ImageRetrieveResponse getImage(Long id) throws ImageNotFoundException, ImageIOException, ImageDataFormatException {
         Image retrievedImg = imageRepository
                 .findById(id)
                 .orElseThrow(
                         () -> new ImageNotFoundException(id)
                 );
-
-        return new ImageRetrieveResponse(
-                "Successfully retrieved image",
-                retrievedImg.getName(),
-                retrievedImg.getData());
-
+        try {
+            return new ImageRetrieveResponse(
+                    "Successfully retrieved image",
+                    retrievedImg.getName(),
+                    retrievedImg.getType(),
+                    ImageUtils.decompressImage(retrievedImg.getData()));
+        } catch (IOException ex) {
+            throw new ImageIOException("Failed to download image: " + ex);
+        } catch (DataFormatException ex) {
+            throw new ImageDataFormatException("Failed to download image: " + ex);
+        }
     }
 }

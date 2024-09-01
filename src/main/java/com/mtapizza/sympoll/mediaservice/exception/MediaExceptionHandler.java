@@ -1,8 +1,10 @@
 package com.mtapizza.sympoll.mediaservice.exception;
 
 import com.mtapizza.sympoll.mediaservice.dto.response.error.GeneralMediaErrorResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.error.image.data.format.ImageDataFormatExceptionErrorResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.error.image.io.exception.ImageIOExceptionErrorResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.error.image.not.found.ImageNotFoundErrorResponse;
+import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,15 @@ public class MediaExceptionHandler {
     public ResponseEntity<ImageIOExceptionErrorResponse> handleImageIOException(Exception ex, WebRequest request) {
         log.info("Encountered an image IO exception: {}", ex.getMessage());
         return new ResponseEntity<>(new ImageIOExceptionErrorResponse(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Handles image data format exceptions.
+     */
+    @ExceptionHandler(ImageDataFormatException.class)
+    public ResponseEntity<ImageDataFormatExceptionErrorResponse> handleImageDataFormatException(Exception ex, WebRequest request) {
+        log.info("Encountered an image data format exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ImageDataFormatExceptionErrorResponse(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
