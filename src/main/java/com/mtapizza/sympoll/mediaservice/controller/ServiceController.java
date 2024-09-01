@@ -33,6 +33,7 @@ public class ServiceController {
         log.info("Received request to retrieve image with id: {}", id);
         return ResponseEntity
                 .status(HttpStatus.OK)
+                .header("Content-Type", "image/png")
                 .body(imageService.getImage(id));
     }
 }
