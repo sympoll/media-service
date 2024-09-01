@@ -1,10 +1,12 @@
 package com.mtapizza.sympoll.mediaservice.controller;
 
+import com.mtapizza.sympoll.mediaservice.dto.request.image.ImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageRetrieveResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
+import com.mtapizza.sympoll.mediaservice.exception.image.upload.ImageUploadFailedException;
 import com.mtapizza.sympoll.mediaservice.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +23,14 @@ public class ServiceController {
     private final ImageService imageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam("file") MultipartFile file) throws ImageIOException {
+    public ResponseEntity<ImageUploadResponse> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestBody ImageUploadRequest uploadInfo
+    ) throws ImageIOException, ImageUploadFailedException {
         log.info("Received request to upload image");
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(imageService.saveImage(file));
+                .body(imageService.uploadProfilePicture(file, uploadInfo));
     }
 
     @GetMapping("/{id}")

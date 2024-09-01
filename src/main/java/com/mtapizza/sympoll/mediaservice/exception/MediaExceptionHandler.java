@@ -4,9 +4,11 @@ import com.mtapizza.sympoll.mediaservice.dto.response.error.GeneralMediaErrorRes
 import com.mtapizza.sympoll.mediaservice.dto.response.error.image.data.format.ImageDataFormatExceptionErrorResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.error.image.io.exception.ImageIOExceptionErrorResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.error.image.not.found.ImageNotFoundErrorResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.error.image.upload.ImageUploadFailedErrorResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
+import com.mtapizza.sympoll.mediaservice.exception.image.upload.ImageUploadFailedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,15 @@ public class MediaExceptionHandler {
     public ResponseEntity<ImageIOExceptionErrorResponse> handleImageIOException(Exception ex, WebRequest request) {
         log.info("Encountered an image IO exception: {}", ex.getMessage());
         return new ResponseEntity<>(new ImageIOExceptionErrorResponse(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Handles image upload failed exceptions.
+     */
+    @ExceptionHandler(ImageUploadFailedException.class)
+    public ResponseEntity<ImageUploadFailedErrorResponse> handleImageUploadFailedException(Exception ex, WebRequest request) {
+        log.info("Encountered an image upload failed exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ImageUploadFailedErrorResponse(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
