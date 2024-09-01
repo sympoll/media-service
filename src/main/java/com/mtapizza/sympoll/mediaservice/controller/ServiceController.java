@@ -15,8 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/media")
@@ -27,12 +25,12 @@ public class ServiceController {
     @PostMapping("/upload")
     public ResponseEntity<ImageUploadResponse> uploadImage(
             @RequestParam("file") MultipartFile file,
-            @RequestPart UUID ownerUserId
+            @RequestPart ImageUploadRequest uploadInfo
     ) throws ImageIOException, ImageUploadFailedException {
         log.info("Received request to upload image");
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(imageService.uploadProfilePicture(file, ownerUserId));
+                .body(imageService.uploadProfilePicture(file, uploadInfo));
     }
 
     @GetMapping("/{id}")

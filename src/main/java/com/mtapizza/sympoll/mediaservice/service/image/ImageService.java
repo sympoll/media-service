@@ -31,19 +31,19 @@ public class ImageService {
     @Value("${media.service.url}")
     private String mediaServiceUrl;
 
-    public ImageUploadResponse uploadProfilePicture(MultipartFile file, UUID ownerUserId) throws ImageIOException, ImageUploadFailedException {
+    public ImageUploadResponse uploadProfilePicture(MultipartFile file, ImageUploadRequest uploadInfo) throws ImageIOException, ImageUploadFailedException {
         ImageUploadResponse uploadedImageResponse = saveImage(file);
 
         // Update the profile picture of the user
         UUID updatedUserId = userClient.userUpdateProfilePictureUrl(
                 new UserUpdateProfilePictureUrlRequest(
-                        ownerUserId,
+                        uploadInfo.ownerUserId(),
                         uploadedImageResponse.imageUrl()
                 )
         );
 
-        if(!updatedUserId.equals(ownerUserId)) {
-            throw new ImageUploadFailedException("Owner user id mismatch: " + updatedUserId + "(saved user ID), " + ownerUserId + "(requested user ID)");
+        if(!updatedUserId.equals(uploadInfo.ownerUserId())) {
+            throw new ImageUploadFailedException("Owner user id mismatch: " + updatedUserId + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
         }
 
         return uploadedImageResponse;
