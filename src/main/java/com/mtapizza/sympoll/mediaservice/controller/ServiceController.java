@@ -22,15 +22,26 @@ import org.springframework.web.multipart.MultipartFile;
 public class ServiceController {
     private final ImageService imageService;
 
-    @PostMapping("/upload")
-    public ResponseEntity<ImageUploadResponse> uploadImage(
+    @PostMapping("/upload-profile-picture")
+    public ResponseEntity<ImageUploadResponse> uploadProfilePicture(
             @RequestParam("file") MultipartFile file,
             @RequestPart ImageUploadRequest uploadInfo
     ) throws ImageIOException, ImageUploadFailedException {
-        log.info("Received request to upload image");
+        log.info("Received request to upload profile picture: {}", uploadInfo);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(imageService.uploadProfilePicture(file, uploadInfo));
+    }
+
+    @PostMapping("/upload-profile-banner")
+    public ResponseEntity<ImageUploadResponse> uploadProfileBanner(
+            @RequestParam("file") MultipartFile file,
+            @RequestPart ImageUploadRequest uploadInfo
+    ) throws ImageIOException, ImageUploadFailedException {
+        log.info("Received request to upload profile banner: {}", uploadInfo);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(imageService.uploadProfileBanner(file, uploadInfo));
     }
 
     @GetMapping("/{id}")
