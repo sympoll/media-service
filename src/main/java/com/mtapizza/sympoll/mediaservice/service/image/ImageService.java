@@ -35,18 +35,14 @@ public class ImageService {
         }
     }
 
-    public ImageRetrieveResponse getImage(Long id) throws ImageNotFoundException, ImageIOException, ImageDataFormatException {
+    public byte[] getImage(Long id) throws ImageNotFoundException, ImageIOException, ImageDataFormatException {
         Image retrievedImg = imageRepository
                 .findById(id)
                 .orElseThrow(
                         () -> new ImageNotFoundException(id)
                 );
         try {
-            return new ImageRetrieveResponse(
-                    "Successfully retrieved image",
-                    retrievedImg.getName(),
-                    retrievedImg.getType(),
-                    ImageUtils.decompressImage(retrievedImg.getData()));
+            return ImageUtils.decompressImage(retrievedImg.getData());
         } catch (IOException ex) {
             throw new ImageIOException("Failed to download image: " + ex);
         } catch (DataFormatException ex) {
