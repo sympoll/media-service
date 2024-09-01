@@ -25,7 +25,7 @@ public class ServiceController {
     @PostMapping("/upload")
     public ResponseEntity<ImageUploadResponse> uploadImage(
             @RequestParam("file") MultipartFile file,
-            @RequestBody ImageUploadRequest uploadInfo
+            @RequestPart ImageUploadRequest uploadInfo
     ) throws ImageIOException, ImageUploadFailedException {
         log.info("Received request to upload image");
         return ResponseEntity
