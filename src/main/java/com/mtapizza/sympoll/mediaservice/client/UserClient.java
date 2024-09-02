@@ -15,6 +15,6 @@ public interface UserClient {
     @PostExchange("/api/user/profile-picture-url")
     UUID userUpdateProfilePictureUrl(@RequestBody UserUpdateProfilePictureUrlRequest userUpdateProfilePictureUrlRequest);
 
-    @GetExchange("/api/user/profile-banner-url")
+    @PostExchange("/api/user/profile-banner-url")
     UUID userUpdateBannerPictureUrl(@RequestBody UserUpdateBannerPictureUrlRequest userUpdateBannerPictureUrlRequest);
 }
