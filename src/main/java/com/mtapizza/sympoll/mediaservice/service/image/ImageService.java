@@ -1,5 +1,6 @@
 package com.mtapizza.sympoll.mediaservice.service.image;
 
+import com.mtapizza.sympoll.mediaservice.client.GroupClient;
 import com.mtapizza.sympoll.mediaservice.client.UserClient;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateBannerPictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateProfilePictureUrlRequest;
@@ -31,6 +32,7 @@ import java.util.zip.DataFormatException;
 public class ImageService {
     private final ImageRepository imageRepository;
     private final UserClient userClient;
+    private final GroupClient groupClient;
 
     @Value("${media.service.url}")
     private String mediaServiceUrl;
@@ -76,7 +78,7 @@ public class ImageService {
         ImageUploadResponse uploadedImageResponse = saveImage(file);
 
         // Update the banner picture of the user
-        log.info("Sending request to user-service to update the user's banner picture url.");
+        log.info("Sending request to group-service to update the user's banner picture url.");
         UUID updatedUserId = userClient.userUpdateBannerPictureUrl(
                 new UserUpdateBannerPictureUrlRequest(
                         uploadInfo.ownerUserId(),
@@ -104,8 +106,8 @@ public class ImageService {
         ImageUploadResponse uploadedImageResponse = saveImage(file);
 
         // Update the profile picture of the user
-        log.info("Sending request to user-service to update the group's profile picture url.");
-        String updatedGroupId = userClient.groupUpdateProfilePictureUrl(
+        log.info("Sending request to group-service to update the group's profile picture url.");
+        String updatedGroupId = groupClient.groupUpdateProfilePictureUrl(
                 new GroupUpdateProfilePictureUrlRequest(
                         uploadInfo.groupId(),
                         uploadedImageResponse.imageUrl()
@@ -133,7 +135,7 @@ public class ImageService {
 
         // Update the banner picture of the user
         log.info("Sending request to user-service to update the group's banner picture url.");
-        String updatedGroupId = userClient.groupUpdateBannerPictureUrl(
+        String updatedGroupId = groupClient.groupUpdateBannerPictureUrl(
                 new GroupUpdateBannerPictureUrlRequest(
                         uploadInfo.groupId(),
                         uploadedImageResponse.imageUrl()
