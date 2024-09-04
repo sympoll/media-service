@@ -1,7 +1,7 @@
 package com.mtapizza.sympoll.mediaservice.controller;
 
-import com.mtapizza.sympoll.mediaservice.dto.request.image.ImageUploadRequest;
-import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageRetrieveResponse;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
@@ -22,26 +22,48 @@ import org.springframework.web.multipart.MultipartFile;
 public class ServiceController {
     private final ImageService imageService;
 
-    @PostMapping("/upload-profile-picture")
-    public ResponseEntity<ImageUploadResponse> uploadProfilePicture(
+    @PostMapping("/user/upload-profile-picture")
+    public ResponseEntity<ImageUploadResponse> uploadUserProfilePicture(
             @RequestParam("file") MultipartFile file,
-            @RequestPart ImageUploadRequest uploadInfo
+            @RequestPart UserImageUploadRequest uploadInfo
     ) throws ImageIOException, ImageUploadFailedException {
-        log.info("Received request to upload profile picture: {}", uploadInfo);
+        log.info("Received request to upload a user profile picture: {}", uploadInfo);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(imageService.uploadProfilePicture(file, uploadInfo));
+                .body(imageService.uploadUserProfilePicture(file, uploadInfo));
     }
 
-    @PostMapping("/upload-profile-banner")
-    public ResponseEntity<ImageUploadResponse> uploadProfileBanner(
+    @PostMapping("/user/upload-profile-banner")
+    public ResponseEntity<ImageUploadResponse> uploadUserProfileBanner(
             @RequestParam("file") MultipartFile file,
-            @RequestPart ImageUploadRequest uploadInfo
+            @RequestPart UserImageUploadRequest uploadInfo
     ) throws ImageIOException, ImageUploadFailedException {
-        log.info("Received request to upload profile banner: {}", uploadInfo);
+        log.info("Received request to upload a user profile banner: {}", uploadInfo);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(imageService.uploadProfileBanner(file, uploadInfo));
+                .body(imageService.uploadUserProfileBanner(file, uploadInfo));
+    }
+
+    @PostMapping("/group/upload-profile-picture")
+    public ResponseEntity<ImageUploadResponse> uploadGroupProfilePicture(
+            @RequestParam("file") MultipartFile file,
+            @RequestPart GroupImageUploadRequest uploadInfo
+    ) throws ImageIOException, ImageUploadFailedException {
+        log.info("Received request to upload a group profile picture: {}", uploadInfo);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(imageService.uploadGroupProfilePicture(file, uploadInfo));
+    }
+
+    @PostMapping("/group/upload-profile-banner")
+    public ResponseEntity<ImageUploadResponse> uploadGroupProfileBanner(
+            @RequestParam("file") MultipartFile file,
+            @RequestPart GroupImageUploadRequest uploadInfo
+    ) throws ImageIOException, ImageUploadFailedException {
+        log.info("Received request to upload a group profile banner: {}", uploadInfo);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(imageService.uploadGroupProfileBanner(file, uploadInfo));
     }
 
     @GetMapping("/{id}")
