@@ -1,7 +1,11 @@
 package com.mtapizza.sympoll.mediaservice.service.image;
 
+import com.mtapizza.sympoll.mediaservice.client.GroupClient;
 import com.mtapizza.sympoll.mediaservice.client.UserClient;
-import com.mtapizza.sympoll.mediaservice.dto.request.image.ImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateBannerPictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateProfilePictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
@@ -28,24 +32,25 @@ import java.util.zip.DataFormatException;
 public class ImageService {
     private final ImageRepository imageRepository;
     private final UserClient userClient;
+    private final GroupClient groupClient;
 
     @Value("${media.service.url}")
     private String mediaServiceUrl;
 
     /**
-     * Upload a profile picture.
-     * Sends a request to the user-service to save the newly added profile picture's url.
+     * Upload a user profile picture.
+     * Sends a request to the user-service to save the newly added user profile picture's url.
      * @param file File of the profile picture to upload.
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
-    public ImageUploadResponse uploadProfilePicture(MultipartFile file, ImageUploadRequest uploadInfo)
+    public ImageUploadResponse uploadUserProfilePicture(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
-        log.info("Uploading profile picture.");
+        log.info("Uploading user profile picture.");
         ImageUploadResponse uploadedImageResponse = saveImage(file);
 
         // Update the profile picture of the user
-        log.info("Sending request to user-service to update the profile picture url.");
+        log.info("Sending request to user-service to update the user's profile picture url.");
         UUID updatedUserId = userClient.userUpdateProfilePictureUrl(
                 new UserUpdateProfilePictureUrlRequest(
                         uploadInfo.ownerUserId(),
@@ -61,19 +66,19 @@ public class ImageService {
     }
 
     /**
-     * Upload a profile banner.
-     * Sends a request to the user-service to save the newly added banner picture's url.
+     * Upload a user profile banner.
+     * Sends a request to the user-service to save the newly added user banner picture's url.
      * @param file File of the banner picture to upload.
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
-    public ImageUploadResponse uploadProfileBanner(MultipartFile file, ImageUploadRequest uploadInfo)
+    public ImageUploadResponse uploadUserProfileBanner(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
-        log.info("Uploading profile banner.");
+        log.info("Uploading user profile banner.");
         ImageUploadResponse uploadedImageResponse = saveImage(file);
 
         // Update the banner picture of the user
-        log.info("Sending request to user-service to update the banner picture url.");
+        log.info("Sending request to group-service to update the user's banner picture url.");
         UUID updatedUserId = userClient.userUpdateBannerPictureUrl(
                 new UserUpdateBannerPictureUrlRequest(
                         uploadInfo.ownerUserId(),
@@ -83,6 +88,62 @@ public class ImageService {
 
         if(!updatedUserId.equals(uploadInfo.ownerUserId())) {
             throw new ImageUploadFailedException("Owner user id mismatch: " + updatedUserId + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
+        }
+
+        return uploadedImageResponse;
+    }
+
+    /**
+     * Upload a group profile picture.
+     * Sends a request to the user-service to save the newly added group profile picture's url.
+     * @param file File of the profile picture to upload.
+     * @param uploadInfo Info on the upload / uploader.
+     * @return Information on the uploaded picture.
+     */
+    public ImageUploadResponse uploadGroupProfilePicture(MultipartFile file, GroupImageUploadRequest uploadInfo)
+            throws ImageIOException, ImageUploadFailedException {
+        log.info("Uploading group profile picture.");
+        ImageUploadResponse uploadedImageResponse = saveImage(file);
+
+        // Update the profile picture of the user
+        log.info("Sending request to group-service to update the group's profile picture url.");
+        String updatedGroupId = groupClient.groupUpdateProfilePictureUrl(
+                new GroupUpdateProfilePictureUrlRequest(
+                        uploadInfo.groupId(),
+                        uploadedImageResponse.imageUrl()
+                )
+        );
+
+        if(!updatedGroupId.equals(uploadInfo.groupId())) {
+            throw new ImageUploadFailedException("Group id mismatch: " + updatedGroupId + "(saved group ID), " + uploadInfo.groupId() + "(requested group ID)");
+        }
+
+        return uploadedImageResponse;
+    }
+
+    /**
+     * Upload a group profile banner.
+     * Sends a request to the user-service to save the newly added group banner picture's url.
+     * @param file File of the banner picture to upload.
+     * @param uploadInfo Info on the upload / uploader.
+     * @return Information on the uploaded picture.
+     */
+    public ImageUploadResponse uploadGroupProfileBanner(MultipartFile file, GroupImageUploadRequest uploadInfo)
+            throws ImageIOException, ImageUploadFailedException {
+        log.info("Uploading group profile banner.");
+        ImageUploadResponse uploadedImageResponse = saveImage(file);
+
+        // Update the banner picture of the user
+        log.info("Sending request to user-service to update the group's banner picture url.");
+        String updatedGroupId = groupClient.groupUpdateBannerPictureUrl(
+                new GroupUpdateBannerPictureUrlRequest(
+                        uploadInfo.groupId(),
+                        uploadedImageResponse.imageUrl()
+                )
+        );
+
+        if(!updatedGroupId.equals(uploadInfo.groupId())) {
+            throw new ImageUploadFailedException("Group id mismatch: " + updatedGroupId + "(saved group ID), " + uploadInfo.groupId() + "(requested group ID)");
         }
 
         return uploadedImageResponse;
