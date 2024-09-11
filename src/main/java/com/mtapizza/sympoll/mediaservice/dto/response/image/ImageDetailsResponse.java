@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 
 public record ImageDetailsResponse(
+        String ownerId,
         Long id,
         String name,
         String type,

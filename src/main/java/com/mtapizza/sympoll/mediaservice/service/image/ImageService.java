@@ -4,10 +4,12 @@ import com.mtapizza.sympoll.mediaservice.client.GroupClient;
 import com.mtapizza.sympoll.mediaservice.client.UserClient;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateBannerPictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateBannerPictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -44,10 +47,11 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
+    @Transactional
     public ImageUploadResponse uploadUserProfilePicture(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading user profile picture.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file);
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString());
 
         // Update the profile picture of the user
         log.info("Sending request to user-service to update the user's profile picture url.");
@@ -72,10 +76,11 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
+    @Transactional
     public ImageUploadResponse uploadUserProfileBanner(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading user profile banner.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file);
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString());
 
         // Update the banner picture of the user
         log.info("Sending request to group-service to update the user's banner picture url.");
@@ -100,10 +105,11 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
+    @Transactional
     public ImageUploadResponse uploadGroupProfilePicture(MultipartFile file, GroupImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading group profile picture.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file);
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId());
 
         // Update the profile picture of the user
         log.info("Sending request to group-service to update the group's profile picture url.");
@@ -128,10 +134,11 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
+    @Transactional
     public ImageUploadResponse uploadGroupProfileBanner(MultipartFile file, GroupImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading group profile banner.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file);
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId());
 
         // Update the banner picture of the user
         log.info("Sending request to user-service to update the group's banner picture url.");
@@ -154,10 +161,11 @@ public class ImageService {
      * @param file Image file to save.
      * @return Information on the uploaded picture.
      */
-    private ImageUploadResponse saveImage(MultipartFile file) throws ImageIOException {
+    private ImageUploadResponse saveImage(MultipartFile file, String ownerId) throws ImageIOException {
         try {
             log.info("Saving image in the database.");
             Image imageToSave = Image.builder()
+                    .ownerId(ownerId)
                     .name(file.getOriginalFilename())
                     .type(file.getContentType())
                     .data(ImageUtils.compressImage(file.getBytes()))
@@ -167,7 +175,13 @@ public class ImageService {
             log.info("Successfully saved image into the database.");
 
             String imageUrl = mediaServiceUrl + imageToSave.getId();
-            return new ImageUploadResponse("Successfully uploaded image", imageUrl, imageToSave.getName(), imageToSave.getType());
+            return new ImageUploadResponse(
+                    imageToSave.getOwnerId(),
+                    imageUrl,
+                    imageToSave.getName(),
+                    imageToSave.getType(),
+                    imageToSave.getTimeUploaded()
+            );
         } catch (IOException ex) {
             log.error(ex.getMessage());
             throw new ImageIOException("Failed to upload image: " + ex);
@@ -191,5 +205,17 @@ public class ImageService {
         } catch (DataFormatException ex) {
             throw new ImageDataFormatException("Failed to download image: " + ex);
         }
+    }
+
+
+    @Transactional
+    public ImageDeleteResponse deleteGroupImage(GroupImageDeleteRequest groupImageDeleteRequest) {
+        // TODO: validate the request
+        Long imageToDeleteId = Long.valueOf(groupImageDeleteRequest.imageUrl().replaceFirst(mediaServiceUrl, ""));
+
+        log.info("Deleting group image with id: {}", imageToDeleteId);
+        imageRepository.deleteById(imageToDeleteId);
+        log.info("Successfully deleted group image with id: {}", imageToDeleteId);
+        return new ImageDeleteResponse(groupImageDeleteRequest.imageUrl());
     }
 }

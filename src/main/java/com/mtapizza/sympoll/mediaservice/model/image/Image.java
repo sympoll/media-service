@@ -23,6 +23,9 @@ public class Image {
     @Column(name = "name")
     private String name;
 
+    @Column(name="owner_id")
+    private String ownerId;
+
     @Column(name = "type")
     private String type;
 
@@ -38,10 +41,11 @@ public class Image {
      */
     public ImageDetailsResponse toImageDetailsResponse() {
         return new ImageDetailsResponse(
-            this.id,
-            this.name,
-            this.type,
-            this.timeUploaded
+                this.ownerId,
+                this.id,
+                this.name,
+                this.type,
+                this.timeUploaded
         );
     }
 }

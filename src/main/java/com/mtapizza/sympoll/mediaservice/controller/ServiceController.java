@@ -1,7 +1,9 @@
 package com.mtapizza.sympoll.mediaservice.controller;
 
+import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
@@ -67,11 +69,25 @@ public class ServiceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> getImage(@PathVariable Long id) throws ImageNotFoundException, ImageIOException, ImageDataFormatException {
+    public ResponseEntity<byte[]> getImage(
+            @PathVariable Long id
+    ) throws ImageNotFoundException, ImageIOException, ImageDataFormatException {
         log.info("Received request to retrieve image with id: {}", id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header("Content-Type", "image/png")
                 .body(imageService.getImage(id));
+    }
+
+
+    @DeleteMapping("/group")
+    public ResponseEntity<ImageDeleteResponse> deleteGroupImage(
+            @RequestBody GroupImageDeleteRequest groupImageDeleteRequest
+    ) {
+        log.info("Received request to delete image for group with ID: {}", groupImageDeleteRequest.groupId());
+        log.debug("Received URL of image to delete: {}", groupImageDeleteRequest.imageUrl());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(imageService.deleteGroupImage(groupImageDeleteRequest));
     }
 }
