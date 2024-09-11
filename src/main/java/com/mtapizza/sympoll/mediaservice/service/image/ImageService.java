@@ -57,7 +57,7 @@ public class ImageService {
     public ImageUploadResponse uploadUserProfilePicture(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading user profile picture.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString());
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString(), OwnerType.USER);
 
         // Update the profile picture of the user
         log.info("Sending request to user-service to update the user's profile picture url.");
@@ -86,7 +86,7 @@ public class ImageService {
     public ImageUploadResponse uploadUserProfileBanner(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading user profile banner.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString());
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString(), OwnerType.USER);
 
         // Update the banner picture of the user
         log.info("Sending request to group-service to update the user's banner picture url.");
@@ -115,7 +115,7 @@ public class ImageService {
     public ImageUploadResponse uploadGroupProfilePicture(MultipartFile file, GroupImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading group profile picture.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId());
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId(), OwnerType.GROUP);
 
         // Update the profile picture of the user
         log.info("Sending request to group-service to update the group's profile picture url.");
@@ -144,7 +144,7 @@ public class ImageService {
     public ImageUploadResponse uploadGroupProfileBanner(MultipartFile file, GroupImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading group profile banner.");
-        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId());
+        ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId(), OwnerType.GROUP);
 
         // Update the banner picture of the user
         log.info("Sending request to user-service to update the group's banner picture url.");
