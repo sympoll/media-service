@@ -47,7 +47,6 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
-    @Transactional
     public ImageUploadResponse uploadUserProfilePicture(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading user profile picture.");
@@ -76,7 +75,6 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
-    @Transactional
     public ImageUploadResponse uploadUserProfileBanner(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading user profile banner.");
@@ -105,7 +103,6 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
-    @Transactional
     public ImageUploadResponse uploadGroupProfilePicture(MultipartFile file, GroupImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading group profile picture.");
@@ -134,7 +131,6 @@ public class ImageService {
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
      */
-    @Transactional
     public ImageUploadResponse uploadGroupProfileBanner(MultipartFile file, GroupImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
         log.info("Uploading group profile banner.");
@@ -161,7 +157,7 @@ public class ImageService {
      * @param file Image file to save.
      * @return Information on the uploaded picture.
      */
-    public ImageUploadResponse saveImage(MultipartFile file, String ownerId) throws ImageIOException {
+    private ImageUploadResponse saveImage(MultipartFile file, String ownerId) throws ImageIOException {
         try {
             log.info("Saving image in the database.");
             Image imageToSave = Image.builder()
@@ -208,7 +204,6 @@ public class ImageService {
     }
 
 
-    @Transactional
     public ImageDeleteResponse deleteGroupImage(GroupImageDeleteRequest groupImageDeleteRequest) {
         // TODO: validate the request
         Long imageToDeleteId = Long.valueOf(groupImageDeleteRequest.imageUrl().replaceFirst(mediaServiceUrl, ""));
