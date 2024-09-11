@@ -161,7 +161,7 @@ public class ImageService {
      * @param file Image file to save.
      * @return Information on the uploaded picture.
      */
-    private ImageUploadResponse saveImage(MultipartFile file, String ownerId) throws ImageIOException {
+    public ImageUploadResponse saveImage(MultipartFile file, String ownerId) throws ImageIOException {
         try {
             log.info("Saving image in the database.");
             Image imageToSave = Image.builder()
