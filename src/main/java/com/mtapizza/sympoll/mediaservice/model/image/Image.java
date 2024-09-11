@@ -27,6 +27,7 @@ public class Image {
     @Column(name="owner_id")
     private String ownerId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="owner_type")
     private OwnerType ownerType; // types are: USER / GROUP
 
