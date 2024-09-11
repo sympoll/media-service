@@ -84,7 +84,7 @@ public class ServiceController {
                 .body(imageService.getImage(id));
     }
 
-    @DeleteMapping("/user")
+    @DeleteMapping("/user/image")
     public ResponseEntity<ImageDeleteResponse> deleteUserImage(
             @RequestBody UserImageDeleteRequest userImageDeleteRequest
     ) {
@@ -95,7 +95,7 @@ public class ServiceController {
                 .body(imageService.deleteUserImage(userImageDeleteRequest));
     }
 
-    @DeleteMapping("/group")
+    @DeleteMapping("/group/image")
     public ResponseEntity<ImageDeleteResponse> deleteGroupImage(
             @RequestBody GroupImageDeleteRequest groupImageDeleteRequest
     ) {
@@ -106,7 +106,7 @@ public class ServiceController {
                 .body(imageService.deleteGroupImage(groupImageDeleteRequest));
     }
 
-    @DeleteMapping("/user")
+    @DeleteMapping("/user/data")
     public ResponseEntity<UserDataDeleteResponse> deleteUserData(
             @RequestBody UserDataDeleteRequest userDataDeleteRequest
     ) {
@@ -116,7 +116,7 @@ public class ServiceController {
                 .body(imageService.deleteUserData(userDataDeleteRequest));
     }
 
-    @DeleteMapping("/group")
+    @DeleteMapping("/group/data")
     public ResponseEntity<GroupDataDeleteResponse> deleteGroupData(
             @RequestBody GroupDataDeleteRequest groupDataDeleteRequest
     ) {
