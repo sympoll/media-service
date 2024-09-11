@@ -1,7 +1,7 @@
 package com.mtapizza.sympoll.mediaservice.client;
 
-import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateBannerPictureUrlRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupUpdateProfilePictureUrlRequest;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.PostExchange;
 

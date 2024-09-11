@@ -1,11 +1,15 @@
 package com.mtapizza.sympoll.mediaservice.controller;
 
-import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageDeleteRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageDeleteRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.delete.GroupDataDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.delete.GroupImageDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserDataDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserImageDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.response.group.delete.GroupDataDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.delete.UserDataDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
@@ -100,5 +104,25 @@ public class ServiceController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(imageService.deleteGroupImage(groupImageDeleteRequest));
+    }
+
+    @DeleteMapping("/user")
+    public ResponseEntity<UserDataDeleteResponse> deleteUserData(
+            @RequestBody UserDataDeleteRequest userDataDeleteRequest
+    ) {
+        log.info("Received request to delete all user data for user with ID: {}", userDataDeleteRequest.userId());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(imageService.deleteUserData(userDataDeleteRequest));
+    }
+
+    @DeleteMapping("/group")
+    public ResponseEntity<GroupDataDeleteResponse> deleteGroupData(
+            @RequestBody GroupDataDeleteRequest groupDataDeleteRequest
+    ) {
+        log.info("Received request to delete all group data for group with ID: {}", groupDataDeleteRequest.groupId());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(imageService.deleteGroupData(groupDataDeleteRequest));
     }
 }

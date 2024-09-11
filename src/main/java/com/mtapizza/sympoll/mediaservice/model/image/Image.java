@@ -1,6 +1,7 @@
 package com.mtapizza.sympoll.mediaservice.model.image;
 
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDetailsResponse;
+import com.mtapizza.sympoll.mediaservice.model.owner.type.OwnerType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +26,9 @@ public class Image {
 
     @Column(name="owner_id")
     private String ownerId;
+
+    @Column(name="owner_type")
+    private OwnerType ownerType; // types are: USER / GROUP
 
     @Column(name = "type")
     private String type;

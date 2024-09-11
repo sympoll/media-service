@@ -2,21 +2,26 @@ package com.mtapizza.sympoll.mediaservice.service.image;
 
 import com.mtapizza.sympoll.mediaservice.client.GroupClient;
 import com.mtapizza.sympoll.mediaservice.client.UserClient;
-import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateBannerPictureUrlRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateProfilePictureUrlRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageDeleteRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageDeleteRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateBannerPictureUrlRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.delete.GroupDataDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.delete.GroupImageDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserDataDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserImageDeleteRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.response.group.delete.GroupDataDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.delete.UserDataDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
 import com.mtapizza.sympoll.mediaservice.exception.image.upload.ImageUploadFailedException;
 import com.mtapizza.sympoll.mediaservice.model.image.Image;
+import com.mtapizza.sympoll.mediaservice.model.owner.type.OwnerType;
 import com.mtapizza.sympoll.mediaservice.repository.image.ImageRepository;
 import com.mtapizza.sympoll.mediaservice.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
@@ -162,11 +167,12 @@ public class ImageService {
      * @param file Image file to save.
      * @return Information on the uploaded picture.
      */
-    private ImageUploadResponse saveImage(MultipartFile file, String ownerId) throws ImageIOException {
+    private ImageUploadResponse saveImage(MultipartFile file, String ownerId, OwnerType ownerType) throws ImageIOException {
         try {
             log.info("Saving image in the database.");
             Image imageToSave = Image.builder()
                     .ownerId(ownerId)
+                    .ownerType(ownerType)
                     .name(file.getOriginalFilename())
                     .type(file.getContentType())
                     .data(ImageUtils.compressImage(file.getBytes()))
@@ -245,5 +251,31 @@ public class ImageService {
         log.info("Successfully deleted image with id: {}", imageToDeleteId);
 
         return new ImageDeleteResponse(imageUrl);
+    }
+
+    /**
+     * Completely remove media data for a user.
+     * @param userDataDeleteRequest Information on the user to delete.
+     * @return Information on the user that was deleted.
+     */
+    public UserDataDeleteResponse deleteUserData(UserDataDeleteRequest userDataDeleteRequest) {
+        // TODO: validate request
+        log.info("Deleting user data for user with ID {}.", userDataDeleteRequest.userId());
+        imageRepository.deleteByOwnerId(userDataDeleteRequest.userId().toString());
+
+        return new UserDataDeleteResponse(userDataDeleteRequest.userId());
+    }
+
+    /**
+     * Completely remove media data for a group.
+     * @param groupDataDeleteRequest Information on the group to delete.
+     * @return Information on the group that was deleted.
+     */
+    public GroupDataDeleteResponse deleteGroupData(GroupDataDeleteRequest groupDataDeleteRequest) {
+        // TODO: validate request
+        log.info("Deleting group data for group with ID {}.", groupDataDeleteRequest.groupId());
+        imageRepository.deleteByOwnerId(groupDataDeleteRequest.groupId());
+
+        return new GroupDataDeleteResponse(groupDataDeleteRequest.groupId());
     }
 }
