@@ -258,6 +258,7 @@ public class ImageService {
      * @param userDataDeleteRequest Information on the user to delete.
      * @return Information on the user that was deleted.
      */
+    @Transactional
     public UserDataDeleteResponse deleteUserData(UserDataDeleteRequest userDataDeleteRequest) {
         // TODO: validate request
         log.info("Deleting user data for user with ID {}.", userDataDeleteRequest.userId());
@@ -271,6 +272,7 @@ public class ImageService {
      * @param groupDataDeleteRequest Information on the group to delete.
      * @return Information on the group that was deleted.
      */
+    @Transactional
     public GroupDataDeleteResponse deleteGroupData(GroupDataDeleteRequest groupDataDeleteRequest) {
         // TODO: validate request
         log.info("Deleting group data for group with ID {}.", groupDataDeleteRequest.groupId());
