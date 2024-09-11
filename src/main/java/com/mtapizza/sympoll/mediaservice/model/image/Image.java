@@ -27,7 +27,7 @@ public class Image {
     private String type;
 
     @Column(name = "time_created")
-    private final LocalDateTime timeCreated = LocalDateTime.now(); // Initialize to the current time.
+    private final LocalDateTime timeUploaded = LocalDateTime.now(); // Initialize to the current time.
 
     @Column(name = "data", columnDefinition="bytea")
     private byte[] data;
@@ -41,7 +41,7 @@ public class Image {
             this.id,
             this.name,
             this.type,
-            this.timeCreated
+            this.timeUploaded
         );
     }
 }
