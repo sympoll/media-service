@@ -1,4 +1,4 @@
-package com.mtapizza.sympoll.mediaservice.dto.request.group;
+package com.mtapizza.sympoll.mediaservice.dto.request.group.upload;
 
 public record GroupUpdateProfilePictureUrlRequest(
         String groupId,

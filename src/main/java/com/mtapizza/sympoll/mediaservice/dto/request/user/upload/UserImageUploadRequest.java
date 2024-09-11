@@ -1,4 +1,4 @@
-package com.mtapizza.sympoll.mediaservice.dto.request.user.image;
+package com.mtapizza.sympoll.mediaservice.dto.request.user.upload;
 
 import java.util.UUID;
 

@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
-public record ImageUploadResponse (
+public record ImageDetailsResponse(
         String ownerId,
-        String imageUrl,
-        String imageName,
+        Long id,
+        String name,
         String type,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
         LocalDateTime timeUploaded
-) {
+){
 }
