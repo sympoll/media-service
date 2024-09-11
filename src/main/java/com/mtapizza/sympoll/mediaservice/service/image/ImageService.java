@@ -6,6 +6,7 @@ import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateBannerPict
 import com.mtapizza.sympoll.mediaservice.dto.request.group.GroupUpdateProfilePictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateBannerPictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.UserUpdateProfilePictureUrlRequest;
@@ -207,15 +208,40 @@ public class ImageService {
         }
     }
 
+    /**
+     * Delete a user image from the media DB.
+     * @param userImageDeleteRequest Information on the user's image to delete.
+     * @return Information on the deletion that was completed.
+     */
+    @Transactional
+    public ImageDeleteResponse deleteUserImage(UserImageDeleteRequest userImageDeleteRequest) {
+        // TODO: validate the request
 
+        deleteImage(userImageDeleteRequest.imageUrl());
+    }
+
+
+    /**
+     * Delete a group image from the media DB.
+     * @param groupImageDeleteRequest Information on the group's image to delete.
+     * @return Information on the deletion that was completed.
+     */
     @Transactional
     public ImageDeleteResponse deleteGroupImage(GroupImageDeleteRequest groupImageDeleteRequest) {
         // TODO: validate the request
-        Long imageToDeleteId = Long.valueOf(groupImageDeleteRequest.imageUrl().replaceFirst(mediaServiceUrl, ""));
 
-        log.info("Deleting group image with id: {}", imageToDeleteId);
+        deleteImage(groupImageDeleteRequest.imageUrl());
+    }
+
+    /**
+     * Delete an image from the media DB.
+     * @param imageUrl URL of the image to delete.
+     */
+    private void deleteImage(String imageUrl) {
+        Long imageToDeleteId = Long.valueOf(imageUrl.replaceFirst(mediaServiceUrl, ""));
+
+        log.info("Deleting image with id: {}", imageToDeleteId);
         imageRepository.deleteById(imageToDeleteId);
-        log.info("Successfully deleted group image with id: {}", imageToDeleteId);
-        return new ImageDeleteResponse(groupImageDeleteRequest.imageUrl());
+        log.info("Successfully deleted image with id: {}", imageToDeleteId);
     }
 }

@@ -2,6 +2,7 @@ package com.mtapizza.sympoll.mediaservice.controller;
 
 import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.image.GroupImageUploadRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.image.UserImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
@@ -79,13 +80,23 @@ public class ServiceController {
                 .body(imageService.getImage(id));
     }
 
+    @DeleteMapping("/user")
+    public ResponseEntity<ImageDeleteResponse> deleteUserImage(
+            @RequestBody UserImageDeleteRequest userImageDeleteRequest
+    ) {
+        log.info("Received request to delete image for user with ID: {}", userImageDeleteRequest.userId());
+        log.debug("Received URL of user image to delete: {}", userImageDeleteRequest.imageUrl());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(imageService.deleteUserImage(userImageDeleteRequest));
+    }
 
     @DeleteMapping("/group")
     public ResponseEntity<ImageDeleteResponse> deleteGroupImage(
             @RequestBody GroupImageDeleteRequest groupImageDeleteRequest
     ) {
         log.info("Received request to delete image for group with ID: {}", groupImageDeleteRequest.groupId());
-        log.debug("Received URL of image to delete: {}", groupImageDeleteRequest.imageUrl());
+        log.debug("Received URL of group image to delete: {}", groupImageDeleteRequest.imageUrl());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(imageService.deleteGroupImage(groupImageDeleteRequest));
