@@ -217,7 +217,7 @@ public class ImageService {
     public ImageDeleteResponse deleteUserImage(UserImageDeleteRequest userImageDeleteRequest) {
         // TODO: validate the request
 
-        deleteImage(userImageDeleteRequest.imageUrl());
+        return deleteImage(userImageDeleteRequest.imageUrl());
     }
 
 
@@ -230,18 +230,20 @@ public class ImageService {
     public ImageDeleteResponse deleteGroupImage(GroupImageDeleteRequest groupImageDeleteRequest) {
         // TODO: validate the request
 
-        deleteImage(groupImageDeleteRequest.imageUrl());
+        return deleteImage(groupImageDeleteRequest.imageUrl());
     }
 
     /**
      * Delete an image from the media DB.
      * @param imageUrl URL of the image to delete.
      */
-    private void deleteImage(String imageUrl) {
+    private ImageDeleteResponse deleteImage(String imageUrl) {
         Long imageToDeleteId = Long.valueOf(imageUrl.replaceFirst(mediaServiceUrl, ""));
 
         log.info("Deleting image with id: {}", imageToDeleteId);
         imageRepository.deleteById(imageToDeleteId);
         log.info("Successfully deleted image with id: {}", imageToDeleteId);
+
+        return new ImageDeleteResponse(imageUrl);
     }
 }
