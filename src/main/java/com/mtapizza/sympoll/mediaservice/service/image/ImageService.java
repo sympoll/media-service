@@ -10,16 +10,19 @@ import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupImageUplo
 import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserDataDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserImageUploadRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateProfileBannerUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateProfilePictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.response.group.delete.GroupDataDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.user.delete.UserDataDeleteResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.update.UserUpdateProfileBannerUrlResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.update.UserUpdateProfilePictureUrlResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
 import com.mtapizza.sympoll.mediaservice.exception.image.upload.ImageUploadFailedException;
+import com.mtapizza.sympoll.mediaservice.exception.request.RequestFailedException;
 import com.mtapizza.sympoll.mediaservice.model.image.Image;
 import com.mtapizza.sympoll.mediaservice.model.owner.type.OwnerType;
 import com.mtapizza.sympoll.mediaservice.repository.image.ImageRepository;
@@ -27,12 +30,12 @@ import com.mtapizza.sympoll.mediaservice.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.UUID;
 import java.util.zip.DataFormatException;
 
 @Service
@@ -56,23 +59,37 @@ public class ImageService {
     @Transactional
     public ImageUploadResponse uploadUserProfilePicture(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
+        // Save the user profile picture
         log.info("Uploading user profile picture.");
         ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString(), OwnerType.USER);
 
         // Update the profile picture of the user
         log.info("Sending request to user-service to update the user's profile picture url.");
-        UUID updatedUserId = userClient.userUpdateProfilePictureUrl(
+        ResponseEntity<UserUpdateProfilePictureUrlResponse> responseEntity = userClient.userUpdateProfilePictureUrl(
                 new UserUpdateProfilePictureUrlRequest(
                         uploadInfo.ownerUserId(),
                         uploadedImageResponse.imageUrl()
                 )
         );
 
-        if(!updatedUserId.equals(uploadInfo.ownerUserId())) {
-            throw new ImageUploadFailedException("Owner user id mismatch: " + updatedUserId + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
-        }
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            UserUpdateProfilePictureUrlResponse userUpdateProfilePictureUrlResponse = responseEntity.getBody();
 
-        return uploadedImageResponse;
+            // Delete the old user profile picture
+            assert userUpdateProfilePictureUrlResponse != null;
+            if(userUpdateProfilePictureUrlResponse.profilePictureUrl() != null)
+                deleteImage(userUpdateProfilePictureUrlResponse.profilePictureUrl());
+
+            if(!userUpdateProfilePictureUrlResponse.userId().equals(uploadInfo.ownerUserId())) {
+                throw new ImageUploadFailedException("Owner user id mismatch: " + userUpdateProfilePictureUrlResponse.userId() + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
+            }
+
+            return uploadedImageResponse;
+        } else {
+            String errorMessage = responseEntity.hasBody() ? String.valueOf(responseEntity.getBody()) : "No error message in the response body";
+            log.error("Request to update user profile picture via user service failed. Status code {}", responseEntity.getStatusCode());
+            throw new RequestFailedException("Request to user service failed. Status code " + responseEntity.getStatusCode() + "error message " + errorMessage);
+        }
     }
 
     /**
@@ -85,23 +102,37 @@ public class ImageService {
     @Transactional
     public ImageUploadResponse uploadUserProfileBanner(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
+        // Save the user profile picture
         log.info("Uploading user profile banner.");
         ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString(), OwnerType.USER);
 
-        // Update the banner picture of the user
-        log.info("Sending request to group-service to update the user's banner picture url.");
-        UUID updatedUserId = userClient.userUpdateBannerPictureUrl(
-                new UserUpdateBannerPictureUrlRequest(
+        // Update the profile picture of the user
+        log.info("Sending request to user-service to update the user's profile banner url.");
+        ResponseEntity<UserUpdateProfileBannerUrlResponse> responseEntity = userClient.userUpdateBannerPictureUrl(
+                new UserUpdateProfileBannerUrlRequest(
                         uploadInfo.ownerUserId(),
                         uploadedImageResponse.imageUrl()
                 )
         );
 
-        if(!updatedUserId.equals(uploadInfo.ownerUserId())) {
-            throw new ImageUploadFailedException("Owner user id mismatch: " + updatedUserId + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
-        }
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            UserUpdateProfileBannerUrlResponse userUpdateProfileBannerUrlResponse = responseEntity.getBody();
 
-        return uploadedImageResponse;
+            // Delete the old user profile picture
+            assert userUpdateProfileBannerUrlResponse != null;
+            if(userUpdateProfileBannerUrlResponse.profileBannerUrl() != null)
+                deleteImage(userUpdateProfileBannerUrlResponse.profileBannerUrl());
+
+            if(!userUpdateProfileBannerUrlResponse.userId().equals(uploadInfo.ownerUserId())) {
+                throw new ImageUploadFailedException("Owner user id mismatch: " + userUpdateProfileBannerUrlResponse.userId() + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
+            }
+
+            return uploadedImageResponse;
+        } else {
+            String errorMessage = responseEntity.hasBody() ? String.valueOf(responseEntity.getBody()) : "No error message in the response body";
+            log.error("Request to update user profile banner via user service failed. Status code {}", responseEntity.getStatusCode());
+            throw new RequestFailedException("Request to user service failed. Status code " + responseEntity.getStatusCode() + "error message " + errorMessage);
+        }
     }
 
     /**

@@ -1,16 +1,17 @@
 package com.mtapizza.sympoll.mediaservice.client;
 
-import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateProfileBannerUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateProfilePictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.update.UserUpdateProfileBannerUrlResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.update.UserUpdateProfilePictureUrlResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.PostExchange;
 
-import java.util.UUID;
-
 public interface UserClient {
     @PostExchange("/api/user/profile-picture-url")
-    UUID userUpdateProfilePictureUrl(@RequestBody UserUpdateProfilePictureUrlRequest userUpdateProfilePictureUrlRequest);
+    ResponseEntity<UserUpdateProfilePictureUrlResponse> userUpdateProfilePictureUrl(@RequestBody UserUpdateProfilePictureUrlRequest userUpdateProfilePictureUrlRequest);
 
     @PostExchange("/api/user/profile-banner-url")
-    UUID userUpdateBannerPictureUrl(@RequestBody UserUpdateBannerPictureUrlRequest userUpdateBannerPictureUrlRequest);
+    ResponseEntity<UserUpdateProfileBannerUrlResponse> userUpdateBannerPictureUrl(@RequestBody UserUpdateProfileBannerUrlRequest userUpdateProfileBannerUrlRequest);
 }
