@@ -1,6 +1,6 @@
 package com.mtapizza.sympoll.mediaservice.dto.request.group.upload;
 
-public record GroupUpdateBannerPictureUrlRequest(
+public record GroupUpdateProfileBannerUrlRequest(
         String groupId,
         String profileBannerUrl
 ) {

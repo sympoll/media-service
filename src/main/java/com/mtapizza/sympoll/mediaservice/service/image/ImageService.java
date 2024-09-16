@@ -3,23 +3,28 @@ package com.mtapizza.sympoll.mediaservice.service.image;
 import com.mtapizza.sympoll.mediaservice.client.GroupClient;
 import com.mtapizza.sympoll.mediaservice.client.UserClient;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.delete.GroupDataDeleteRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupUpdateProfileBannerUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupUpdateProfilePictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.delete.GroupImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.group.upload.GroupImageUploadRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserDataDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.delete.UserImageDeleteRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserImageUploadRequest;
-import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateBannerPictureUrlRequest;
+import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateProfileBannerUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.request.user.upload.UserUpdateProfilePictureUrlRequest;
 import com.mtapizza.sympoll.mediaservice.dto.response.group.delete.GroupDataDeleteResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.group.update.GroupUpdateProfileBannerUrlResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.group.update.GroupUpdateProfilePictureUrlResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageDeleteResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.image.ImageUploadResponse;
 import com.mtapizza.sympoll.mediaservice.dto.response.user.delete.UserDataDeleteResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.update.UserUpdateProfileBannerUrlResponse;
+import com.mtapizza.sympoll.mediaservice.dto.response.user.update.UserUpdateProfilePictureUrlResponse;
 import com.mtapizza.sympoll.mediaservice.exception.image.data.format.ImageDataFormatException;
 import com.mtapizza.sympoll.mediaservice.exception.image.io.exception.ImageIOException;
 import com.mtapizza.sympoll.mediaservice.exception.image.not.found.ImageNotFoundException;
 import com.mtapizza.sympoll.mediaservice.exception.image.upload.ImageUploadFailedException;
+import com.mtapizza.sympoll.mediaservice.exception.request.RequestFailedException;
 import com.mtapizza.sympoll.mediaservice.model.image.Image;
 import com.mtapizza.sympoll.mediaservice.model.owner.type.OwnerType;
 import com.mtapizza.sympoll.mediaservice.repository.image.ImageRepository;
@@ -27,12 +32,12 @@ import com.mtapizza.sympoll.mediaservice.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.UUID;
 import java.util.zip.DataFormatException;
 
 @Service
@@ -49,6 +54,7 @@ public class ImageService {
     /**
      * Upload a user profile picture.
      * Sends a request to the user-service to save the newly added user profile picture's url.
+     * Deletes the old user profile picture (if one exists).
      * @param file File of the profile picture to upload.
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
@@ -56,28 +62,43 @@ public class ImageService {
     @Transactional
     public ImageUploadResponse uploadUserProfilePicture(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
+        // Save the user profile picture
         log.info("Uploading user profile picture.");
         ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString(), OwnerType.USER);
 
         // Update the profile picture of the user
         log.info("Sending request to user-service to update the user's profile picture url.");
-        UUID updatedUserId = userClient.userUpdateProfilePictureUrl(
+        ResponseEntity<UserUpdateProfilePictureUrlResponse> responseEntity = userClient.userUpdateProfilePictureUrl(
                 new UserUpdateProfilePictureUrlRequest(
                         uploadInfo.ownerUserId(),
                         uploadedImageResponse.imageUrl()
                 )
         );
 
-        if(!updatedUserId.equals(uploadInfo.ownerUserId())) {
-            throw new ImageUploadFailedException("Owner user id mismatch: " + updatedUserId + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
-        }
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            UserUpdateProfilePictureUrlResponse userUpdateProfilePictureUrlResponse = responseEntity.getBody();
 
-        return uploadedImageResponse;
+            // Delete the old user profile picture
+            assert userUpdateProfilePictureUrlResponse != null;
+            if(userUpdateProfilePictureUrlResponse.profilePictureUrl() != null)
+                deleteImage(userUpdateProfilePictureUrlResponse.profilePictureUrl());
+
+            if(!userUpdateProfilePictureUrlResponse.userId().equals(uploadInfo.ownerUserId())) {
+                throw new ImageUploadFailedException("Owner user id mismatch: " + userUpdateProfilePictureUrlResponse.userId() + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
+            }
+
+            return uploadedImageResponse;
+        } else {
+            String errorMessage = responseEntity.hasBody() ? String.valueOf(responseEntity.getBody()) : "No error message in the response body";
+            log.error("Request to update user profile picture via user service failed. Status code {}", responseEntity.getStatusCode());
+            throw new RequestFailedException("Request to user service failed. Status code " + responseEntity.getStatusCode() + "error message " + errorMessage);
+        }
     }
 
     /**
      * Upload a user profile banner.
      * Sends a request to the user-service to save the newly added user banner picture's url.
+     * Deletes the old user profile banner (if one exists).
      * @param file File of the banner picture to upload.
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
@@ -85,28 +106,43 @@ public class ImageService {
     @Transactional
     public ImageUploadResponse uploadUserProfileBanner(MultipartFile file, UserImageUploadRequest uploadInfo)
             throws ImageIOException, ImageUploadFailedException {
+        // Save the user profile banner
         log.info("Uploading user profile banner.");
         ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.ownerUserId().toString(), OwnerType.USER);
 
-        // Update the banner picture of the user
-        log.info("Sending request to group-service to update the user's banner picture url.");
-        UUID updatedUserId = userClient.userUpdateBannerPictureUrl(
-                new UserUpdateBannerPictureUrlRequest(
+        // Update the profile banner of the user
+        log.info("Sending request to user-service to update the user's profile banner url.");
+        ResponseEntity<UserUpdateProfileBannerUrlResponse> responseEntity = userClient.userUpdateBannerPictureUrl(
+                new UserUpdateProfileBannerUrlRequest(
                         uploadInfo.ownerUserId(),
                         uploadedImageResponse.imageUrl()
                 )
         );
 
-        if(!updatedUserId.equals(uploadInfo.ownerUserId())) {
-            throw new ImageUploadFailedException("Owner user id mismatch: " + updatedUserId + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
-        }
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            UserUpdateProfileBannerUrlResponse userUpdateProfileBannerUrlResponse = responseEntity.getBody();
 
-        return uploadedImageResponse;
+            // Delete the old user profile banner
+            assert userUpdateProfileBannerUrlResponse != null;
+            if(userUpdateProfileBannerUrlResponse.profileBannerUrl() != null)
+                deleteImage(userUpdateProfileBannerUrlResponse.profileBannerUrl());
+
+            if(!userUpdateProfileBannerUrlResponse.userId().equals(uploadInfo.ownerUserId())) {
+                throw new ImageUploadFailedException("Owner user id mismatch: " + userUpdateProfileBannerUrlResponse.userId() + "(saved user ID), " + uploadInfo.ownerUserId() + "(requested user ID)");
+            }
+
+            return uploadedImageResponse;
+        } else {
+            String errorMessage = responseEntity.hasBody() ? String.valueOf(responseEntity.getBody()) : "No error message in the response body";
+            log.error("Request to update user profile banner via user service failed. Status code {}", responseEntity.getStatusCode());
+            throw new RequestFailedException("Request to user service failed. Status code " + responseEntity.getStatusCode() + "error message " + errorMessage);
+        }
     }
 
     /**
      * Upload a group profile picture.
      * Sends a request to the user-service to save the newly added group profile picture's url.
+     * Deletes the old group profile picture (if one exists).
      * @param file File of the profile picture to upload.
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
@@ -117,25 +153,38 @@ public class ImageService {
         log.info("Uploading group profile picture.");
         ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId(), OwnerType.GROUP);
 
-        // Update the profile picture of the user
+        // Update the profile picture of the group
         log.info("Sending request to group-service to update the group's profile picture url.");
-        String updatedGroupId = groupClient.groupUpdateProfilePictureUrl(
+        ResponseEntity<GroupUpdateProfilePictureUrlResponse> responseEntity = groupClient.groupUpdateProfilePictureUrl(
                 new GroupUpdateProfilePictureUrlRequest(
                         uploadInfo.groupId(),
                         uploadedImageResponse.imageUrl()
                 )
         );
 
-        if(!updatedGroupId.equals(uploadInfo.groupId())) {
-            throw new ImageUploadFailedException("Group id mismatch: " + updatedGroupId + "(saved group ID), " + uploadInfo.groupId() + "(requested group ID)");
-        }
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            GroupUpdateProfilePictureUrlResponse groupUpdateProfilePictureUrlResponse = responseEntity.getBody();
 
-        return uploadedImageResponse;
+            // Delete the old group profile picture
+            assert groupUpdateProfilePictureUrlResponse != null;
+            if(groupUpdateProfilePictureUrlResponse.profilePictureUrl() != null)
+                deleteImage(groupUpdateProfilePictureUrlResponse.profilePictureUrl());
+
+            if(!groupUpdateProfilePictureUrlResponse.groupId().equals(uploadInfo.groupId())) {
+                throw new ImageUploadFailedException("Group id mismatch: " + groupUpdateProfilePictureUrlResponse.groupId() + "(saved group ID), " + uploadInfo.groupId() + "(requested group ID)");
+            }
+            return uploadedImageResponse;
+        } else {
+            String errorMessage = responseEntity.hasBody() ? String.valueOf(responseEntity.getBody()) : "No error message in the response body";
+            log.error("Request to update group profile picture via group service failed. Status code {}", responseEntity.getStatusCode());
+            throw new RequestFailedException("Request to group service failed. Status code " + responseEntity.getStatusCode() + "error message " + errorMessage);
+        }
     }
 
     /**
      * Upload a group profile banner.
      * Sends a request to the user-service to save the newly added group banner picture's url.
+     * Deletes the old group profile banner (if one exists).
      * @param file File of the banner picture to upload.
      * @param uploadInfo Info on the upload / uploader.
      * @return Information on the uploaded picture.
@@ -146,20 +195,32 @@ public class ImageService {
         log.info("Uploading group profile banner.");
         ImageUploadResponse uploadedImageResponse = saveImage(file, uploadInfo.groupId(), OwnerType.GROUP);
 
-        // Update the banner picture of the user
-        log.info("Sending request to user-service to update the group's banner picture url.");
-        String updatedGroupId = groupClient.groupUpdateBannerPictureUrl(
-                new GroupUpdateBannerPictureUrlRequest(
+        // Update the profile banner of the group
+        log.info("Sending request to group-service to update the group's profile banner url.");
+        ResponseEntity<GroupUpdateProfileBannerUrlResponse> responseEntity = groupClient.groupUpdateBannerPictureUrl(
+                new GroupUpdateProfileBannerUrlRequest(
                         uploadInfo.groupId(),
                         uploadedImageResponse.imageUrl()
                 )
         );
 
-        if(!updatedGroupId.equals(uploadInfo.groupId())) {
-            throw new ImageUploadFailedException("Group id mismatch: " + updatedGroupId + "(saved group ID), " + uploadInfo.groupId() + "(requested group ID)");
-        }
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            GroupUpdateProfileBannerUrlResponse groupUpdateProfileBannerUrlResponse = responseEntity.getBody();
 
-        return uploadedImageResponse;
+            // Delete the old group profile banner
+            assert groupUpdateProfileBannerUrlResponse != null;
+            if(groupUpdateProfileBannerUrlResponse.profileBannerUrl() != null)
+                deleteImage(groupUpdateProfileBannerUrlResponse.profileBannerUrl());
+
+            if(!groupUpdateProfileBannerUrlResponse.groupId().equals(uploadInfo.groupId())) {
+                throw new ImageUploadFailedException("Group id mismatch: " + groupUpdateProfileBannerUrlResponse.groupId() + "(saved group ID), " + uploadInfo.groupId() + "(requested group ID)");
+            }
+            return uploadedImageResponse;
+        } else {
+            String errorMessage = responseEntity.hasBody() ? String.valueOf(responseEntity.getBody()) : "No error message in the response body";
+            log.error("Request to update group profile banner via group service failed. Status code {}", responseEntity.getStatusCode());
+            throw new RequestFailedException("Request to group service failed. Status code " + responseEntity.getStatusCode() + "error message " + errorMessage);
+        }
     }
 
     /**
